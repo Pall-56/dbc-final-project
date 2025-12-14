@@ -1,8 +1,471 @@
 <!doctype html>
-<html>
-<head><meta charset="utf-8"><title>Insights</title></head>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CloudAssist — Insights</title>
+
+  <style>
+    :root{
+      --bg:#0b1220;
+      --card: rgba(255,255,255,.06);
+      --line: rgba(255,255,255,.12);
+      --text: rgba(255,255,255,.92);
+      --muted: rgba(255,255,255,.70);
+      --brand1:#4f46e5;
+      --brand2:#06b6d4;
+      --good:#22c55e;
+      --info:#60a5fa;
+      --warn:#fbbf24;
+      --bad:#fb7185;
+      --shadow: 0 18px 55px rgba(0,0,0,.35);
+      --radius: 18px;
+    }
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      background:
+        radial-gradient(1200px 700px at 15% 10%, rgba(79,70,229,.28), transparent 60%),
+        radial-gradient(900px 600px at 85% 0%, rgba(6,182,212,.22), transparent 55%),
+        linear-gradient(180deg, #070b14, var(--bg));
+      color: var(--text);
+      min-height:100vh;
+    }
+
+    .topbar{
+      position:sticky; top:0;
+      backdrop-filter: blur(10px);
+      background: rgba(7,11,20,.55);
+      border-bottom: 1px solid var(--line);
+      z-index:10;
+    }
+    .topbar-inner{
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 14px 18px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 14px;
+    }
+
+    .brand{ display:flex; align-items:center; gap:12px; }
+    .logo{
+      width:44px; height:44px; border-radius:14px;
+      background: linear-gradient(135deg, var(--brand1), var(--brand2));
+      box-shadow: 0 14px 40px rgba(79,70,229,.28);
+      display:grid; place-items:center;
+      font-weight:800;
+      letter-spacing:.4px;
+    }
+    .brand h1{ font-size:15px; margin:0; }
+    .brand p{ font-size:12px; margin:2px 0 0; color: var(--muted); }
+
+    .navpill{ display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end; }
+    .pill{
+      font-size:12px;
+      padding:8px 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(255,255,255,.06);
+      color: var(--muted);
+      text-decoration:none;
+      display:inline-flex;
+      gap:8px;
+      align-items:center;
+    }
+    .pill strong{ color: var(--text); font-weight:600; }
+
+    main{
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 20px 18px 56px;
+      display:grid;
+      gap: 16px;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+    }
+    @media (max-width: 980px){
+      .grid{ grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 560px){
+      .grid{ grid-template-columns: 1fr; }
+    }
+
+    .card{
+      border-radius: var(--radius);
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, var(--card), rgba(255,255,255,.04));
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .card-head{
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--line);
+      background: linear-gradient(90deg, rgba(79,70,229,.14), rgba(6,182,212,.10));
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+    .card-head h2{ margin:0; font-size:18px; letter-spacing:-.2px; }
+    .sub{ margin:0; color: var(--muted); font-size:12px; }
+
+    .kpi{
+      padding: 18px;
+    }
+    .kpi .label{
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+    .kpi .value{
+      font-size: 34px;
+      font-weight: 800;
+      letter-spacing: -.6px;
+      margin-bottom: 8px;
+    }
+    .kpi .hint{
+      font-size: 12px;
+      color: var(--muted);
+      display:flex;
+      gap:8px;
+      align-items:center;
+    }
+    .dot{ width:10px; height:10px; border-radius:999px; background: var(--info); }
+    .dot.total{ background: var(--brand2); }
+    .dot.new{ background: var(--warn); }
+    .dot.progress{ background: var(--info); }
+    .dot.resolved{ background: var(--good); }
+
+    .panel{
+      padding: 18px;
+      display:grid;
+      gap: 12px;
+    }
+
+    .bars{
+      display:grid;
+      gap: 10px;
+    }
+    .barrow{
+      display:grid;
+      grid-template-columns: 140px 1fr 60px;
+      gap: 12px;
+      align-items:center;
+    }
+    @media(max-width:650px){
+      .barrow{ grid-template-columns: 110px 1fr 50px; }
+    }
+    .barname{
+      font-size: 13px;
+      color: var(--text);
+    }
+    .track{
+      height: 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.18);
+      overflow:hidden;
+    }
+    .fill{
+      height: 100%;
+      width: 0%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, rgba(79,70,229,.70), rgba(6,182,212,.85));
+      transition: width .25s ease;
+    }
+    .fill.new{ background: linear-gradient(90deg, rgba(251,191,36,.75), rgba(6,182,212,.65)); }
+    .fill.progress{ background: linear-gradient(90deg, rgba(96,165,250,.75), rgba(79,70,229,.65)); }
+    .fill.resolved{ background: linear-gradient(90deg, rgba(34,197,94,.80), rgba(6,182,212,.55)); }
+
+    .num{
+      text-align:right;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .tablewrap{ overflow:auto; }
+    table{
+      width:100%;
+      border-collapse: collapse;
+    }
+    th, td{
+      padding: 12px 12px;
+      border-bottom: 1px solid rgba(255,255,255,.10);
+      vertical-align: top;
+      font-size: 13px;
+    }
+    th{
+      color: rgba(255,255,255,.72);
+      font-weight:600;
+      text-align:left;
+      font-size: 12px;
+      letter-spacing:.2px;
+    }
+    .muted{ color: var(--muted); font-size: 12px; }
+    .tag{
+      display:inline-flex; align-items:center; gap:8px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+      font-size: 12px;
+      color: rgba(255,255,255,.82);
+      white-space:nowrap;
+    }
+    .tdot{ width:8px; height:8px; border-radius:999px; background: var(--warn); }
+    .tdot.new{ background: var(--warn); }
+    .tdot.progress{ background: var(--info); }
+    .tdot.resolved{ background: var(--good); }
+    .statusline{
+      padding: 10px 12px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.05);
+      font-size: 12px;
+      color: var(--muted);
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+
 <body>
-  <h1>Insights module</h1>
-  <p>Placeholder</p>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <div class="logo">CA</div>
+        <div>
+          <h1>CloudAssist</h1>
+          <p>Insights — live operational snapshot (updates in real time).</p>
+        </div>
+      </div>
+
+      <div class="navpill">
+        <a class="pill" href="public.html">Public</a>
+        <a class="pill" href="staff.html">Staff</a>
+        <div class="pill"><strong>Insights</strong></div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- KPI CARDS -->
+    <section class="grid">
+      <div class="card">
+        <div class="kpi">
+          <div class="label">Total enquiries</div>
+          <div class="value" id="kTotal">—</div>
+          <div class="hint"><span class="dot total"></span>All time in database</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="kpi">
+          <div class="label">New</div>
+          <div class="value" id="kNew">—</div>
+          <div class="hint"><span class="dot new"></span>Waiting for triage</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="kpi">
+          <div class="label">In Progress</div>
+          <div class="value" id="kProgress">—</div>
+          <div class="hint"><span class="dot progress"></span>Being worked on</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="kpi">
+          <div class="label">Resolved</div>
+          <div class="value" id="kResolved">—</div>
+          <div class="hint"><span class="dot resolved"></span>Completed by staff</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VISUAL BREAKDOWN -->
+    <section class="card">
+      <div class="card-head">
+        <div>
+          <h2>Status breakdown</h2>
+          <p class="sub">A simple live bar view (no external chart libraries).</p>
+        </div>
+        <div class="statusline" id="liveLine">Connecting…</div>
+      </div>
+
+      <div class="panel">
+        <div class="bars">
+          <div class="barrow">
+            <div class="barname">New</div>
+            <div class="track"><div class="fill new" id="bNew"></div></div>
+            <div class="num" id="nNew">—</div>
+          </div>
+
+          <div class="barrow">
+            <div class="barname">In Progress</div>
+            <div class="track"><div class="fill progress" id="bProgress"></div></div>
+            <div class="num" id="nProgress">—</div>
+          </div>
+
+          <div class="barrow">
+            <div class="barname">Resolved</div>
+            <div class="track"><div class="fill resolved" id="bResolved"></div></div>
+            <div class="num" id="nResolved">—</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- RECENT ACTIVITY -->
+    <section class="card">
+      <div class="card-head">
+        <div>
+          <h2>Recent enquiries</h2>
+          <p class="sub">Latest 8 records (auto-updates when Public/Staff changes data).</p>
+        </div>
+      </div>
+
+      <div class="tablewrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Status</th>
+              <th>Customer</th>
+              <th>Message (preview)</th>
+              <th>Last update</th>
+            </tr>
+          </thead>
+          <tbody id="recentRows"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+    import {
+      getFirestore, collection, query, orderBy, onSnapshot, limit
+    } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyA9L6iMjwfhEwh-h3utln6teGsEFQzsK-8",
+      authDomain: "dbc-final-project-313a1.firebaseapp.com",
+      projectId: "dbc-final-project-313a1",
+      storageBucket: "dbc-final-project-313a1.firebasestorage.app",
+      messagingSenderId: "295884707682",
+      appId: "1:295884707682:web:42499514404f1176a37e3b"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const kTotal = document.getElementById("kTotal");
+    const kNew = document.getElementById("kNew");
+    const kProgress = document.getElementById("kProgress");
+    const kResolved = document.getElementById("kResolved");
+
+    const bNew = document.getElementById("bNew");
+    const bProgress = document.getElementById("bProgress");
+    const bResolved = document.getElementById("bResolved");
+
+    const nNew = document.getElementById("nNew");
+    const nProgress = document.getElementById("nProgress");
+    const nResolved = document.getElementById("nResolved");
+
+    const recentRows = document.getElementById("recentRows");
+    const liveLine = document.getElementById("liveLine");
+
+    function escapeHtml(s){
+      return (s ?? "").replace(/[&<>"']/g, (c) => ({
+        "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"
+      }[c]));
+    }
+
+    function dotClass(status){
+      if(status === "Resolved") return "resolved";
+      if(status === "In Progress") return "progress";
+      return "new";
+    }
+
+    function fmtDate(ts){
+      try{
+        const d = ts?.toDate ? ts.toDate() : null;
+        if(!d) return "—";
+        return d.toLocaleString();
+      } catch { return "—"; }
+    }
+
+    function setBars(total, cNew, cProg, cRes){
+      const pct = (n) => total ? Math.round((n/total)*100) : 0;
+
+      bNew.style.width = pct(cNew) + "%";
+      bProgress.style.width = pct(cProg) + "%";
+      bResolved.style.width = pct(cRes) + "%";
+
+      nNew.textContent = cNew;
+      nProgress.textContent = cProg;
+      nResolved.textContent = cRes;
+    }
+
+    // Live totals (real-time)
+    const allQ = query(collection(db, "enquiries"), orderBy("createdAt", "desc"));
+    onSnapshot(allQ, (snap) => {
+      const docs = snap.docs.map(d => d.data());
+
+      const total = docs.length;
+      const cNew = docs.filter(d => (d.status || "New") === "New").length;
+      const cProg = docs.filter(d => (d.status || "New") === "In Progress").length;
+      const cRes = docs.filter(d => (d.status || "New") === "Resolved").length;
+
+      kTotal.textContent = total;
+      kNew.textContent = cNew;
+      kProgress.textContent = cProg;
+      kResolved.textContent = cRes;
+
+      setBars(total, cNew, cProg, cRes);
+
+      liveLine.textContent = "Live: updated " + new Date().toLocaleTimeString();
+    }, (err) => {
+      console.error(err);
+      liveLine.textContent = "Error: " + (err?.message || "");
+    });
+
+    // Recent table (latest 8)
+    const recentQ = query(collection(db, "enquiries"), orderBy("updatedAt", "desc"), limit(8));
+    onSnapshot(recentQ, (snap) => {
+      recentRows.innerHTML = "";
+      snap.forEach(docSnap => {
+        const d = docSnap.data();
+        const preview = (d.message || "").slice(0, 80) + ((d.message||"").length > 80 ? "…" : "");
+        const status = d.status || "New";
+        const dot = dotClass(status);
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>
+            <span class="tag">
+              <span class="tdot ${dot}"></span>
+              ${escapeHtml(status)}
+            </span>
+          </td>
+          <td>
+            <div><strong>${escapeHtml(d.name || "—")}</strong></div>
+            <div class="muted">${escapeHtml(d.email || "—")}</div>
+          </td>
+          <td>${escapeHtml(preview)}</td>
+          <td class="muted">${escapeHtml(fmtDate(d.updatedAt))}</td>
+        `;
+        recentRows.appendChild(tr);
+      });
+    });
+  </script>
 </body>
 </html>
