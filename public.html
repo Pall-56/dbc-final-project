@@ -398,7 +398,14 @@
         });
 
         form.reset();
-        showStatus("Enquiry submitted successfully ✅\nCheck Firestore → Data → enquiries.", "ok");
+        const ticket = "CA-" + new Date().toISOString().slice(0,10).replaceAll("-","") + "-" + Math.floor(1000 + Math.random()*9000);
+showStatus(
+  "Thanks — we received your enquiry ✅\n" +
+  "Reference: " + ticket + "\n" +
+  "Next steps: Our team will review it and update the status. You’ll get a reply within business hours.",
+  "ok"
+);
+
       } catch(err){
         // THIS is the key improvement: show exact error
         console.error(err);
